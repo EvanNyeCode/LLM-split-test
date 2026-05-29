@@ -1,0 +1,1494 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LLM Intro and Outro Split Test Tool v2</title>
+  <script id="puterCdnScript" src="https://js.puter.com/v2/" async></script>
+  <style>
+    :root {
+      --bg: #0e1117;
+      --panel: #151a23;
+      --panel2: #1b2230;
+      --text: #e8edf7;
+      --muted: #9aa7bd;
+      --line: #2b3445;
+      --accent: #7cc7ff;
+      --accent2: #8ee6a8;
+      --warn: #ffd27c;
+      --bad: #ff9a9a;
+      --shadow: 0 16px 45px rgba(0,0,0,.28);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    img, canvas, svg, video { max-width: 100%; }
+    .shell, .grid, .mainGrid, .card, aside, section, .topStats, .stat, .controlBar, .split2, .tableWrap { min-width: 0; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(124,199,255,.15), transparent 32rem),
+        radial-gradient(circle at 90% 0%, rgba(142,230,168,.12), transparent 26rem),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+    }
+    header {
+      padding: 22px 18px 14px;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+    .titleRow {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    h1 { margin: 0; font-size: clamp(1.35rem, 2.5vw, 2.2rem); letter-spacing: -.02em; }
+    .sub { margin: 7px 0 0; color: var(--muted); max-width: 980px; line-height: 1.45; }
+    .shell {
+      width: min(1500px, 100%);
+      margin: 0 auto;
+      padding: 0 18px 26px;
+      display: grid;
+      gap: 14px;
+    }
+    .topStats {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(135px, 1fr));
+      gap: 10px;
+    }
+    .stat {
+      background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 13px 14px;
+      box-shadow: var(--shadow);
+    }
+    .stat b { display: block; font-size: 1.22rem; margin-bottom: 3px; }
+    .stat span { color: var(--muted); font-size: .82rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .card {
+      background: rgba(21,26,35,.88);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .cardHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.025);
+    }
+    .cardHead h2 { margin: 0; font-size: 1rem; }
+    .cardBody { padding: 14px 16px 16px; }
+    .stack { display: grid; gap: 12px; }
+    label { display: grid; gap: 6px; font-size: .82rem; color: var(--muted); }
+    input, textarea, select, button {
+      font: inherit;
+    }
+    textarea, input, select {
+      width: 100%;
+      color: var(--text);
+      background: #0f1420;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 11px;
+      outline: none;
+    }
+    textarea:focus, input:focus, select:focus { border-color: rgba(124,199,255,.9); box-shadow: 0 0 0 3px rgba(124,199,255,.12); }
+    textarea { min-height: 104px; resize: vertical; line-height: 1.42; }
+    .row { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+    .row > * { flex: 1 1 auto; }
+    .row.tight > * { flex: 0 0 auto; }
+    button {
+      border: 1px solid var(--line);
+      background: var(--panel2);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 9px 12px;
+      cursor: pointer;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+      white-space: nowrap;
+    }
+    button:hover { border-color: rgba(124,199,255,.65); background: #20293a; }
+    button:active { transform: translateY(1px); }
+    button.primary { background: linear-gradient(135deg, #1a80c4, #155b91); border-color: #2c93da; }
+    button.good { background: linear-gradient(135deg, #247a43, #1c5f35); border-color: #3aa861; }
+    button.warn { background: #3b2f16; border-color: #735a21; color: #ffe6aa; }
+    button.bad { background: #3a1f24; border-color: #78404a; color: #ffd1d8; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .mini { padding: 6px 9px; font-size: .78rem; border-radius: 10px; }
+    .hint { color: var(--muted); font-size: .78rem; line-height: 1.4; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: .78rem;
+      background: rgba(255,255,255,.025);
+    }
+    .pill.good { color: #bff5ce; border-color: rgba(142,230,168,.38); }
+    .pill.warn { color: #ffe2a3; border-color: rgba(255,210,124,.42); }
+    .pill.bad { color: #ffd0d0; border-color: rgba(255,154,154,.42); }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab { opacity: .72; }
+    .tab.active { opacity: 1; border-color: rgba(124,199,255,.8); color: #dff2ff; }
+    .lists { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .itemList { display: grid; gap: 8px; max-height: 215px; overflow: auto; padding-right: 2px; }
+    .listItem {
+      background: #101724;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      display: grid;
+      gap: 7px;
+    }
+    .listItemTop { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .listItem b { font-size: .88rem; }
+    .listItem p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.35; white-space: pre-wrap; word-break: break-word; }
+    .mainGrid { display: grid; gap: 14px; }
+    .controlBar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .statusBox {
+      background: #0f1420;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: grid;
+      gap: 5px;
+    }
+    .statusLine { color: var(--muted); font-size: .84rem; }
+    .statusLine strong { color: var(--text); }
+    .chartWrap { height: 340px; padding: 12px; }
+    #metricChart { width: 100%; height: 100%; display: block; background: #0f1420; border: 1px solid var(--line); border-radius: 16px; }
+    .tableWrap { width: 100%; overflow: auto; max-height: 520px; border-top: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    th, td { text-align: left; padding: 10px 11px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: .84rem; }
+    th { position: sticky; top: 0; z-index: 1; background: #171d29; color: #c7d3e8; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+    td .comboName { font-weight: 700; color: var(--text); }
+    td .comboSub { color: var(--muted); font-size: .76rem; margin-top: 3px; }
+    .progress {
+      width: 100%;
+      height: 9px;
+      background: #0c1018;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .log {
+      height: 170px;
+      overflow: auto;
+      background: #0f1420;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      font-family: var(--mono);
+      font-size: .76rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      color: #c5d0e2;
+    }
+    .promptPreview {
+      background: #0f1420;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      font-family: var(--mono);
+      font-size: .76rem;
+      line-height: 1.45;
+      max-height: 240px;
+      overflow: auto;
+      white-space: pre-wrap;
+      color: #d7e3f6;
+    }
+    .testList { display: grid; gap: 8px; max-height: 300px; overflow: auto; }
+    .testCard {
+      border: 1px solid var(--line);
+      background: #101724;
+      border-radius: 14px;
+      padding: 10px;
+      display: grid;
+      gap: 7px;
+    }
+    .testCard p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.35; }
+    dialog {
+      width: min(760px, calc(100% - 24px));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      padding: 0;
+    }
+    dialog::backdrop { background: rgba(0,0,0,.62); backdrop-filter: blur(3px); }
+    .dialogBody { padding: 16px; display: grid; gap: 12px; }
+    .split2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hidden { display: none !important; }
+    .right { margin-left: auto; }
+    .nowrap { white-space: nowrap; }
+    .providerHelp {
+      border-color: rgba(255,154,154,.28);
+      color: #d8e2f4;
+    }
+    .providerHelp b { color: var(--text); }
+    .providerHelp code {
+      color: #d8eaff;
+      background: rgba(124,199,255,.08);
+      border: 1px solid rgba(124,199,255,.18);
+      border-radius: 7px;
+      padding: 1px 5px;
+      font-family: var(--mono);
+      font-size: .78rem;
+    }
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      .topStats { grid-template-columns: repeat(3, 1fr); }
+      .controlBar { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      header, .shell { padding-left: 10px; padding-right: 10px; }
+      header { padding-top: 14px; }
+      h1 { font-size: 1.42rem; line-height: 1.08; overflow-wrap: anywhere; }
+      .sub { font-size: .9rem; line-height: 1.34; overflow-wrap: anywhere; }
+      .topStats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .stat { padding: 10px 10px; border-radius: 14px; }
+      .stat b { font-size: 1.06rem; line-height: 1.08; }
+      .stat span { display: block; font-size: .72rem; line-height: 1.22; overflow-wrap: anywhere; }
+      .cardHead { align-items: flex-start; flex-direction: column; padding: 12px; }
+      .cardBody { padding: 12px; }
+      .split2 { grid-template-columns: 1fr; }
+      .chartWrap { height: 300px; padding: 8px; }
+      .titleRow .row.tight { width: 100%; align-items: stretch; }
+      .titleRow .row.tight .pill { flex: 1 1 130px; justify-content: center; min-width: 0; text-align: center; }
+      button { width: 100%; }
+      .row.tight button { width: auto; }
+      .row:not(.tight) > button { flex-basis: 100%; }
+      table { min-width: 760px; }
+      th, td { padding: 9px; font-size: .78rem; }
+      textarea { min-height: 90px; }
+    }
+    @media (max-width: 430px) {
+      header, .shell { padding-left: 8px; padding-right: 8px; }
+      .topStats { gap: 7px; }
+      .stat { padding: 9px 9px; }
+      .pill { font-size: .72rem; padding: 5px 8px; }
+      .chartWrap { height: 270px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="titleRow">
+      <div>
+        <h1>LLM Intro and Outro Split Test Tool</h1>
+        <p class="sub">Create prompt intros and outros, test every intro plus outro combination against a static task prompt, and track pass rate, response time, errors, output length, and catch-up progress in real time.</p>
+      </div>
+      <div class="row tight">
+        <span id="providerPill" class="pill warn">Provider: checking</span>
+        <span id="runPill" class="pill">Idle</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="topStats" aria-label="Summary metrics">
+      <div class="stat"><b id="statCombos">0</b><span>Combinations</span></div>
+      <div class="stat"><b id="statRuns">0</b><span>Total runs</span></div>
+      <div class="stat"><b id="statPass">0%</b><span>Overall pass rate</span></div>
+      <div class="stat"><b id="statAvg">0.00s</b><span>Average response time</span></div>
+      <div class="stat"><b id="statTarget">0</b><span>Target per combo</span></div>
+      <div class="stat"><b id="statQueue">0</b><span>Remaining to target</span></div>
+    </section>
+
+    <section class="grid">
+      <aside class="stack">
+        <div class="card">
+          <div class="cardHead"><h2>Static prompt</h2><span class="pill">Use {task}</span></div>
+          <div class="cardBody stack">
+            <label>Base prompt template
+              <textarea id="staticPrompt"></textarea>
+            </label>
+            <p class="hint">Each run builds a prompt as: selected intro + base prompt with the current test inserted into {task} + selected outro. If {task} is missing, the test task is appended automatically.</p>
+            <div class="row">
+              <button id="savePromptBtn">Save prompt</button>
+              <button id="previewPromptBtn">Preview next prompt</button>
+            </div>
+            <div id="promptPreview" class="promptPreview hidden"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead"><h2>Intro variants</h2><button id="addIntroBtn" class="mini primary">Add intro</button></div>
+          <div class="cardBody stack">
+            <label>New intro label
+              <input id="introLabel" placeholder="Example: Strict QA role" />
+            </label>
+            <label>New intro text
+              <textarea id="introText" placeholder="Example: You are a strict instruction follower."></textarea>
+            </label>
+            <div id="introList" class="itemList"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead"><h2>Outro variants</h2><button id="addOutroBtn" class="mini primary">Add outro</button></div>
+          <div class="cardBody stack">
+            <label>New outro label
+              <input id="outroLabel" placeholder="Example: No extra text" />
+            </label>
+            <label>New outro text
+              <textarea id="outroText" placeholder="Example: Return only the requested answer."></textarea>
+            </label>
+            <div id="outroList" class="itemList"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead"><h2>Automated test cases</h2><button id="openTestDialogBtn" class="mini primary">Add test</button></div>
+          <div class="cardBody stack">
+            <div id="testList" class="testList"></div>
+            <p class="hint">Success is judged locally with exact, contains, or regex validation. This avoids needing a second evaluator model.</p>
+          </div>
+        </div>
+      </aside>
+
+      <section class="mainGrid">
+        <div class="card">
+          <div class="cardHead"><h2>Run controls</h2><span class="pill">Single active request</span></div>
+          <div class="cardBody stack">
+            <div class="controlBar">
+              <div class="statusBox">
+                <div class="statusLine"><strong id="statusMain">Ready.</strong></div>
+                <div class="statusLine" id="statusDetail">Balanced mode always selects the lowest-run combination first, so newly added intros and outros catch up automatically.</div>
+              </div>
+              <div class="row tight">
+                <button id="runOneBtn" class="primary">Run one balanced test</button>
+                <button id="runTargetBtn" class="good">Run until target met</button>
+                <button id="stopBtn" class="bad" disabled>Stop</button>
+              </div>
+            </div>
+
+            <div class="split2">
+              <label>Target runs per combination
+                <input id="targetRuns" type="number" min="1" step="1" />
+              </label>
+              <label>Delay between live LLM calls, seconds
+                <input id="delaySeconds" type="number" min="2" step="1" />
+              </label>
+              <label>Model ID
+                <input id="modelId" list="modelOptions" />
+                <datalist id="modelOptions">
+                  <option value="gpt-5-nano"></option>
+                  <option value="openai/gpt-5.2-chat"></option>
+                  <option value="google/gemini-2.5-flash"></option>
+                  <option value="anthropic/claude-sonnet-4.5"></option>
+                  <option value="meta-llama/llama-4-maverick"></option>
+                </datalist>
+              </label>
+              <label>Temperature
+                <input id="temperature" type="number" min="0" max="2" step="0.1" />
+              </label>
+              <label>Max output tokens
+                <input id="maxTokens" type="number" min="16" max="500" step="1" />
+              </label>
+              <label>Provider mode
+                <select id="providerMode">
+                  <option value="puter-live">Puter.js live LLM</option>
+                  <option value="puter-test">Puter.js test mode</option>
+                  <option value="local-sim">Local simulator for UI testing</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="providerHelp" class="statusBox providerHelp hidden"></div>
+
+            <div class="row">
+              <button id="reloadProviderBtn">Reload provider</button>
+              <button id="catchUpBtn">Set target to current max</button>
+              <button id="exportCsvBtn">Export CSV</button>
+              <button id="exportJsonBtn">Export JSON</button>
+              <button id="importJsonBtn">Import JSON</button>
+              <button id="resetBtn" class="warn">Reset results</button>
+            </div>
+            <input id="importFile" class="hidden" type="file" accept="application/json" />
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead">
+            <h2>Live metric graph</h2>
+            <div class="tabs" role="tablist" aria-label="Metric graph selector">
+              <button class="tab mini active" data-metric="passRate">Pass rate</button>
+              <button class="tab mini" data-metric="avgTime">Avg time</button>
+              <button class="tab mini" data-metric="runs">Runs</button>
+              <button class="tab mini" data-metric="errors">Errors</button>
+              <button class="tab mini" data-metric="avgChars">Avg chars</button>
+            </div>
+          </div>
+          <div class="chartWrap"><canvas id="metricChart"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead"><h2>Combination metrics</h2><span id="sortNote" class="pill">Sorted by pass rate</span></div>
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Combination</th>
+                  <th>Runs</th>
+                  <th>Pass rate</th>
+                  <th>Avg time</th>
+                  <th>Avg chars</th>
+                  <th>Errors</th>
+                  <th>Target gap</th>
+                  <th>Last result</th>
+                </tr>
+              </thead>
+              <tbody id="comboTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead"><h2>Run log</h2><button id="clearLogBtn" class="mini">Clear log</button></div>
+          <div class="cardBody"><div id="runLog" class="log"></div></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="testDialog">
+    <div class="cardHead"><h2>Add automated test</h2><button id="closeTestDialogBtn" class="mini">Close</button></div>
+    <div class="dialogBody">
+      <label>Test name
+        <input id="testName" placeholder="Example: state abbreviation" />
+      </label>
+      <label>Task sent to the LLM
+        <textarea id="testTask" placeholder="Example: Return only the state abbreviation for Dallas, Texas."></textarea>
+      </label>
+      <div class="split2">
+        <label>Validator type
+          <select id="validatorType">
+            <option value="regex">Regex</option>
+            <option value="exact">Exact match</option>
+            <option value="contains">Contains</option>
+          </select>
+        </label>
+        <label>Expected value or regex
+          <input id="validatorValue" placeholder="Example: ^TX$" />
+        </label>
+      </div>
+      <div class="row tight">
+        <button id="saveTestBtn" class="primary">Save test</button>
+      </div>
+      <p class="hint">Regex matching is case-insensitive. Use anchors such as ^ and $ when the response must contain only the answer.</p>
+    </div>
+  </dialog>
+
+  <script>
+    const STORAGE_KEY = 'llm_intro_outro_split_test_tool_v1';
+
+    const defaultState = {
+      staticPrompt: 'Perform the task exactly as requested. Return only the final answer. Do not explain.\n\nTask:\n{task}',
+      intros: [
+        { id: 'intro_none', label: 'No intro', text: '', locked: true },
+        { id: 'intro_professional', label: 'Professional role', text: 'You are a professional assistant that follows instructions carefully.', locked: false },
+        { id: 'intro_strict', label: 'Strict compliance role', text: 'You are a strict instruction follower. Prioritize exact formatting and correctness.', locked: false }
+      ],
+      outros: [
+        { id: 'outro_none', label: 'No outro', text: '', locked: true },
+        { id: 'outro_only_answer', label: 'Only answer', text: 'Return only the requested answer.', locked: false },
+        { id: 'outro_no_extra', label: 'No extra text', text: 'Do not include explanations, labels, markdown, or extra text.', locked: false }
+      ],
+      tests: [
+        { id: 'test_math_42', name: 'Arithmetic exact answer', task: 'What is 17 + 25? Return only the number.', validatorType: 'regex', validator: '^42$' },
+        { id: 'test_state_tx', name: 'State abbreviation', task: 'Return only the two-letter state abbreviation for Dallas, Texas.', validatorType: 'regex', validator: '^TX$' },
+        { id: 'test_sentiment', name: 'Sentiment label', task: 'Classify the sentiment of this text as positive, neutral, or negative. Return one word only: "The shipment arrived early and the communication was clear."', validatorType: 'regex', validator: '^positive$' },
+        { id: 'test_extract', name: 'Simple extraction', task: 'Extract only the email address from this text: "Please contact Alex at alex.rivera@example.com before noon."', validatorType: 'exact', validator: 'alex.rivera@example.com' }
+      ],
+      metrics: {},
+      history: [],
+      log: [],
+      settings: {
+        targetRuns: 3,
+        delaySeconds: 8,
+        modelId: 'gpt-5-nano',
+        temperature: 0,
+        maxTokens: 80,
+        providerMode: 'puter-live',
+        graphMetric: 'passRate'
+      }
+    };
+
+    let state = loadState();
+    let runner = { running: false, stopRequested: false, active: false, lastCallAt: 0 };
+    const PUTER_SRC = 'https://js.puter.com/v2/';
+    let puterLoad = { status: 'checking', promise: null, message: '' };
+
+    const el = id => document.getElementById(id);
+    const cssEscape = value => String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
+    function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return clone(defaultState);
+        const parsed = JSON.parse(raw);
+        return mergeState(clone(defaultState), parsed);
+      } catch (err) {
+        console.warn('Failed to load saved state', err);
+        return clone(defaultState);
+      }
+    }
+
+    function mergeState(base, incoming) {
+      for (const key of Object.keys(incoming || {})) {
+        if (incoming[key] && typeof incoming[key] === 'object' && !Array.isArray(incoming[key]) && base[key] && typeof base[key] === 'object' && !Array.isArray(base[key])) {
+          base[key] = mergeState(base[key], incoming[key]);
+        } else {
+          base[key] = incoming[key];
+        }
+      }
+      return base;
+    }
+
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (err) { console.warn('Save failed', err); }
+    }
+
+    function uid(prefix) {
+      return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    }
+
+    function getCombos() {
+      const combos = [];
+      for (const intro of state.intros) {
+        for (const outro of state.outros) {
+          const key = comboKey(intro.id, outro.id);
+          combos.push({ key, intro, outro, label: comboLabel(intro, outro) });
+        }
+      }
+      return combos;
+    }
+
+    function comboKey(introId, outroId) { return introId + '::' + outroId; }
+
+    function comboLabel(intro, outro) {
+      return (intro.label || 'Intro') + ' + ' + (outro.label || 'Outro');
+    }
+
+    function emptyMetric() {
+      return { attempts: 0, success: 0, failure: 0, errors: 0, totalMs: 0, totalChars: 0, byTest: {}, last: null };
+    }
+
+    function metricFor(key) {
+      if (!state.metrics[key]) state.metrics[key] = emptyMetric();
+      return state.metrics[key];
+    }
+
+    function enabledTests() { return state.tests; }
+
+    function rate(m) { return m.attempts ? m.success / m.attempts : 0; }
+    function avgMs(m) { return m.attempts ? m.totalMs / m.attempts : 0; }
+    function avgChars(m) { return m.attempts ? m.totalChars / m.attempts : 0; }
+    function fmtPct(v) { return Math.round(v * 1000) / 10 + '%'; }
+    function fmtSec(ms) { return (ms / 1000).toFixed(2) + 's'; }
+
+    function buildPrompt(combo, test) {
+      let base = state.staticPrompt || defaultState.staticPrompt;
+      if (base.includes('{task}')) base = base.split('{task}').join(test.task);
+      else base = base.trim() + '\n\nTask:\n' + test.task;
+      return [combo.intro.text, base, combo.outro.text].filter(part => part && part.trim()).join('\n\n');
+    }
+
+    function chooseNextJob() {
+      const combos = getCombos();
+      const tests = enabledTests();
+      if (!combos.length || !tests.length) return null;
+      const target = Math.max(1, Number(state.settings.targetRuns) || 1);
+      const eligible = combos
+        .map(combo => ({ combo, metric: metricFor(combo.key) }))
+        .filter(item => item.metric.attempts < target)
+        .sort((a, b) => {
+          if (a.metric.attempts !== b.metric.attempts) return a.metric.attempts - b.metric.attempts;
+          if (rate(a.metric) !== rate(b.metric)) return rate(a.metric) - rate(b.metric);
+          return a.combo.label.localeCompare(b.combo.label);
+        });
+      if (!eligible.length) return null;
+      const selected = eligible[0];
+      const byTest = selected.metric.byTest || {};
+      const test = tests.slice().sort((a, b) => {
+        const ar = byTest[a.id]?.attempts || 0;
+        const br = byTest[b.id]?.attempts || 0;
+        if (ar !== br) return ar - br;
+        return a.name.localeCompare(b.name);
+      })[0];
+      return { combo: selected.combo, test };
+    }
+
+    function remainingToTarget() {
+      const target = Math.max(1, Number(state.settings.targetRuns) || 1);
+      return getCombos().reduce((sum, combo) => sum + Math.max(0, target - metricFor(combo.key).attempts), 0);
+    }
+
+    function highestAttemptCount() {
+      const values = getCombos().map(combo => metricFor(combo.key).attempts);
+      return Math.max(0, ...values);
+    }
+
+    function setTargetToCurrentMax() {
+      state.settings.targetRuns = Math.max(1, highestAttemptCount());
+      syncInputs();
+      saveState();
+      render();
+      logLine('Target set to current max: ' + state.settings.targetRuns + ' run(s) per combination.');
+    }
+
+    function ensureNewVariantsCatchUp() {
+      const maxRuns = highestAttemptCount();
+      const currentTarget = Math.max(1, Number(state.settings.targetRuns) || 1);
+      if (maxRuns > currentTarget) state.settings.targetRuns = maxRuns;
+    }
+
+    function normalizeText(text) {
+      return String(text || '').replace(/\r/g, '').trim();
+    }
+
+    function evaluateResponse(response, test) {
+      const text = normalizeText(response);
+      const expected = String(test.validator || '').trim();
+      try {
+        if (test.validatorType === 'exact') return text.toLowerCase() === expected.toLowerCase();
+        if (test.validatorType === 'contains') return text.toLowerCase().includes(expected.toLowerCase());
+        const re = new RegExp(expected, 'i');
+        return re.test(text);
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function responseToText(result) {
+      if (typeof result === 'string') return result;
+      if (result == null) return '';
+      if (typeof result === 'object') {
+        if (typeof result.text === 'string') return result.text;
+        if (typeof result.content === 'string') return result.content;
+        if (result.message) {
+          if (typeof result.message === 'string') return result.message;
+          if (typeof result.message.content === 'string') return result.message.content;
+          if (Array.isArray(result.message.content)) {
+            return result.message.content.map(part => part.text || part.content || '').join('');
+          }
+        }
+        if (typeof result.toString === 'function' && result.toString !== Object.prototype.toString) return result.toString();
+        return JSON.stringify(result);
+      }
+      return String(result);
+    }
+
+    function puterAvailable() {
+      return !!(window.puter && window.puter.ai && typeof window.puter.ai.chat === 'function');
+    }
+
+    async function waitUntilPuterReady(timeoutMs = 9000) {
+      const start = Date.now();
+      while (Date.now() - start < timeoutMs) {
+        if (puterAvailable()) {
+          puterLoad.status = 'ready';
+          puterLoad.message = '';
+          return true;
+        }
+        await sleep(150);
+      }
+      return false;
+    }
+
+    async function ensurePuterLoaded(force = false) {
+      if (puterAvailable()) {
+        puterLoad.status = 'ready';
+        puterLoad.message = '';
+        return true;
+      }
+      if (puterLoad.promise && !force) return puterLoad.promise;
+
+      puterLoad.status = 'loading';
+      puterLoad.message = 'Loading Puter.js from ' + PUTER_SRC;
+      renderProviderStatus();
+
+      puterLoad.promise = new Promise((resolve, reject) => {
+        const previous = document.getElementById('puterCdnScript');
+        if (force && previous) previous.remove();
+        const existing = !force ? document.getElementById('puterCdnScript') : null;
+        const script = existing || document.createElement('script');
+        script.id = 'puterCdnScript';
+        script.src = PUTER_SRC;
+        script.async = true;
+        script.referrerPolicy = 'no-referrer-when-downgrade';
+
+        let finished = false;
+        const finishOk = () => {
+          if (finished) return;
+          waitUntilPuterReady(9000).then(ok => {
+            if (finished) return;
+            finished = true;
+            if (ok) {
+              puterLoad.status = 'ready';
+              puterLoad.message = '';
+              renderProviderStatus();
+              resolve(true);
+            } else {
+              puterLoad.status = 'blocked';
+              puterLoad.message = 'The Puter.js script tag loaded, but window.puter.ai.chat was not available. This usually means the browser blocked the external script or the page has no internet access.';
+              renderProviderStatus();
+              reject(new Error(puterLoad.message));
+            }
+          });
+        };
+        const finishError = () => {
+          if (finished) return;
+          finished = true;
+          puterLoad.status = 'blocked';
+          puterLoad.message = 'The browser could not load Puter.js from ' + PUTER_SRC + '. Check internet access, try Safari/Chrome, or host this HTML file from a normal http:// or https:// page instead of an external-file viewer.';
+          renderProviderStatus();
+          reject(new Error(puterLoad.message));
+        };
+
+        script.addEventListener('load', finishOk, { once: true });
+        script.addEventListener('error', finishError, { once: true });
+        if (!script.parentNode) document.head.appendChild(script);
+        setTimeout(finishOk, 750);
+      }).finally(() => {
+        puterLoad.promise = null;
+      });
+      return puterLoad.promise;
+    }
+
+    async function reloadProvider() {
+      puterLoad = { status: 'checking', promise: null, message: '' };
+      renderProviderStatus();
+      try {
+        await ensurePuterLoaded(true);
+        logLine('Provider loaded: Puter.js is available.');
+      } catch (err) {
+        logLine('Provider load failed: ' + String(err && (err.message || err) || err));
+      }
+      renderProviderStatus();
+    }
+
+    async function callProvider(prompt, test) {
+      const mode = state.settings.providerMode;
+      if (mode === 'local-sim') {
+        await sleep(250 + Math.random() * 900);
+        return simulateAnswer(test);
+      }
+      await ensurePuterLoaded(false);
+      if (!puterAvailable()) {
+        throw new Error(puterLoad.message || 'Puter.js is not loaded. Check internet access or use Local simulator mode.');
+      }
+      const options = {
+        temperature: Number(state.settings.temperature) || 0,
+        max_tokens: Number(state.settings.maxTokens) || 80
+      };
+      if ((state.settings.modelId || '').trim()) options.model = state.settings.modelId.trim();
+      let result;
+      if (mode === 'puter-test') result = await window.puter.ai.chat(prompt, true, options);
+      else result = await window.puter.ai.chat(prompt, options);
+      return responseToText(result);
+    }
+
+    function simulateAnswer(test) {
+      const value = String(test.validator || '').replace(/^\^/, '').replace(/\$$/, '');
+      if (Math.random() < .86) return value;
+      return 'Unexpected explanation: ' + value;
+    }
+
+    function isRateLimitError(err) {
+      const msg = String(err && (err.message || err) || '').toLowerCase();
+      return msg.includes('rate') || msg.includes('429') || msg.includes('quota') || msg.includes('too many');
+    }
+
+    async function waitForSpacing() {
+      const delayMs = Math.max(2000, Number(state.settings.delaySeconds || 8) * 1000);
+      const elapsed = Date.now() - runner.lastCallAt;
+      if (elapsed < delayMs) {
+        const remaining = delayMs - elapsed;
+        setStatus('Rate-limit spacing active.', 'Waiting ' + Math.ceil(remaining / 1000) + ' second(s) before the next live request.');
+        await sleep(remaining);
+      }
+    }
+
+    async function executeJob(job) {
+      const prompt = buildPrompt(job.combo, job.test);
+      const started = performance.now();
+      setStatus('Running test...', job.combo.label + ' | ' + job.test.name);
+      logLine('RUN: ' + job.combo.label + ' | ' + job.test.name);
+      try {
+        if (state.settings.providerMode !== 'local-sim') await waitForSpacing();
+        runner.lastCallAt = Date.now();
+        const response = await callProvider(prompt, job.test);
+        const elapsed = performance.now() - started;
+        const passed = evaluateResponse(response, job.test);
+        recordResult(job.combo, job.test, { passed, response, elapsed, error: null });
+        logLine((passed ? 'PASS' : 'FAIL') + ': ' + job.combo.label + ' | ' + job.test.name + ' | ' + fmtSec(elapsed) + ' | Response: ' + normalizeText(response).slice(0, 180));
+        setStatus(passed ? 'Last run passed.' : 'Last run failed.', job.combo.label + ' | ' + job.test.name + ' | ' + fmtSec(elapsed));
+      } catch (err) {
+        const elapsed = performance.now() - started;
+        recordResult(job.combo, job.test, { passed: false, response: '', elapsed, error: String(err && (err.message || err) || err) });
+        logLine('ERROR: ' + job.combo.label + ' | ' + job.test.name + ' | ' + String(err && (err.message || err) || err));
+        if (isRateLimitError(err)) {
+          state.settings.delaySeconds = Math.max(Number(state.settings.delaySeconds) || 8, 20);
+          syncInputs();
+          logLine('Rate-limit signal detected. Delay increased to ' + state.settings.delaySeconds + ' seconds.');
+        }
+        setStatus('Last run errored.', String(err && (err.message || err) || err));
+      }
+      saveState();
+      render();
+    }
+
+    function recordResult(combo, test, result) {
+      const m = metricFor(combo.key);
+      if (!m.byTest) m.byTest = {};
+      if (!m.byTest[test.id]) m.byTest[test.id] = { attempts: 0, success: 0, failure: 0, errors: 0, totalMs: 0 };
+      const t = m.byTest[test.id];
+      m.attempts += 1;
+      t.attempts += 1;
+      if (result.passed) { m.success += 1; t.success += 1; }
+      else { m.failure += 1; t.failure += 1; }
+      if (result.error) { m.errors += 1; t.errors += 1; }
+      m.totalMs += result.elapsed;
+      t.totalMs += result.elapsed;
+      m.totalChars += normalizeText(result.response).length;
+      m.last = {
+        at: new Date().toISOString(),
+        testId: test.id,
+        testName: test.name,
+        passed: !!result.passed,
+        elapsed: result.elapsed,
+        response: normalizeText(result.response).slice(0, 500),
+        error: result.error
+      };
+      state.history.push({
+        at: new Date().toISOString(),
+        comboKey: combo.key,
+        introLabel: combo.intro.label,
+        outroLabel: combo.outro.label,
+        testId: test.id,
+        testName: test.name,
+        passed: !!result.passed,
+        elapsedMs: Math.round(result.elapsed),
+        chars: normalizeText(result.response).length,
+        error: result.error || ''
+      });
+      if (state.history.length > 5000) state.history = state.history.slice(-5000);
+    }
+
+    async function runOne() {
+      if (runner.active) return;
+      const job = chooseNextJob();
+      if (!job) {
+        setStatus('Target already met.', 'Increase the target or add a new intro/outro/test.');
+        return;
+      }
+      runner.active = true;
+      setRunPill(true);
+      try { await executeJob(job); } finally { runner.active = false; setRunPill(false); }
+    }
+
+    async function runUntilTarget() {
+      if (runner.running) return;
+      runner.running = true;
+      runner.stopRequested = false;
+      runner.active = true;
+      setRunPill(true);
+      el('stopBtn').disabled = false;
+      el('runTargetBtn').disabled = true;
+      el('runOneBtn').disabled = true;
+      try {
+        while (!runner.stopRequested) {
+          const job = chooseNextJob();
+          if (!job) break;
+          await executeJob(job);
+          await sleep(150);
+        }
+        setStatus(runner.stopRequested ? 'Stopped.' : 'Target met.', runner.stopRequested ? 'The run loop was stopped by the user.' : 'All combinations reached the current target.');
+      } finally {
+        runner.running = false;
+        runner.active = false;
+        runner.stopRequested = false;
+        setRunPill(false);
+        el('stopBtn').disabled = true;
+        el('runTargetBtn').disabled = false;
+        el('runOneBtn').disabled = false;
+        saveState();
+        render();
+      }
+    }
+
+    function stopRuns() {
+      runner.stopRequested = true;
+      setStatus('Stopping after current request.', 'The active LLM call cannot be canceled safely, but no new calls will start.');
+    }
+
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    function syncInputs() {
+      el('staticPrompt').value = state.staticPrompt || '';
+      el('targetRuns').value = state.settings.targetRuns;
+      el('delaySeconds').value = state.settings.delaySeconds;
+      el('modelId').value = state.settings.modelId;
+      el('temperature').value = state.settings.temperature;
+      el('maxTokens').value = state.settings.maxTokens;
+      el('providerMode').value = state.settings.providerMode;
+    }
+
+    function pullInputs() {
+      state.staticPrompt = el('staticPrompt').value;
+      state.settings.targetRuns = Math.max(1, Number(el('targetRuns').value) || 1);
+      state.settings.delaySeconds = Math.max(2, Number(el('delaySeconds').value) || 8);
+      state.settings.modelId = el('modelId').value.trim();
+      state.settings.temperature = Math.max(0, Math.min(2, Number(el('temperature').value) || 0));
+      state.settings.maxTokens = Math.max(16, Math.min(500, Number(el('maxTokens').value) || 80));
+      const previousProviderMode = state.settings.providerMode;
+      state.settings.providerMode = el('providerMode').value;
+      saveState();
+      render();
+      if (previousProviderMode !== state.settings.providerMode && state.settings.providerMode !== 'local-sim') {
+        ensurePuterLoaded(false).catch(() => renderProviderStatus());
+      }
+    }
+
+    function render() {
+      renderProviderStatus();
+      renderLists();
+      renderTests();
+      renderStats();
+      renderTable();
+      drawChart();
+      renderLog();
+    }
+
+    function renderProviderStatus() {
+      const pill = el('providerPill');
+      const help = el('providerHelp');
+      const mode = state.settings.providerMode;
+      if (!pill) return;
+      if (mode === 'local-sim') {
+        pill.className = 'pill warn';
+        pill.textContent = 'Provider: local simulator';
+        if (help) help.classList.add('hidden');
+      } else if (puterAvailable()) {
+        puterLoad.status = 'ready';
+        puterLoad.message = '';
+        pill.className = 'pill good';
+        pill.textContent = mode === 'puter-test' ? 'Provider: Puter test mode' : 'Provider: Puter live';
+        if (help) help.classList.add('hidden');
+      } else {
+        const loading = puterLoad.status === 'checking' || puterLoad.status === 'loading';
+        pill.className = loading ? 'pill warn' : 'pill bad';
+        pill.textContent = loading ? 'Provider: loading Puter' : 'Provider: Puter unavailable';
+        if (help) {
+          help.classList.remove('hidden');
+          help.innerHTML = '<b>Live provider not loaded.</b><br>' +
+            escapeHtml(puterLoad.message || 'The live LLM script is unavailable in this browser session.') +
+            '<br><br>Use <code>Local simulator</code> to test the UI, or tap <code>Reload provider</code>. If this file is opened as <code>edge://external-file</code>, the browser may block the remote Puter.js script. Opening the HTML from Safari/Chrome or a normal hosted http/https page is more reliable.';
+        }
+      }
+    }
+
+    function setRunPill(active) {
+      const pill = el('runPill');
+      pill.className = active ? 'pill good' : 'pill';
+      pill.textContent = active ? 'Running' : 'Idle';
+    }
+
+    function renderLists() {
+      renderVariantList('introList', state.intros, 'intro');
+      renderVariantList('outroList', state.outros, 'outro');
+    }
+
+    function renderVariantList(containerId, list, type) {
+      const node = el(containerId);
+      node.innerHTML = '';
+      list.forEach(item => {
+        const wrap = document.createElement('div');
+        wrap.className = 'listItem';
+        const top = document.createElement('div');
+        top.className = 'listItemTop';
+        const title = document.createElement('b');
+        title.textContent = item.label;
+        const actions = document.createElement('div');
+        actions.className = 'row tight';
+        const edit = document.createElement('button');
+        edit.className = 'mini';
+        edit.textContent = 'Edit';
+        edit.addEventListener('click', () => editVariant(type, item.id));
+        actions.appendChild(edit);
+        if (!item.locked) {
+          const del = document.createElement('button');
+          del.className = 'mini bad';
+          del.textContent = 'Delete';
+          del.addEventListener('click', () => deleteVariant(type, item.id));
+          actions.appendChild(del);
+        }
+        top.appendChild(title);
+        top.appendChild(actions);
+        const text = document.createElement('p');
+        text.textContent = item.text || 'Baseline with no text.';
+        wrap.appendChild(top);
+        wrap.appendChild(text);
+        node.appendChild(wrap);
+      });
+    }
+
+    function renderTests() {
+      const node = el('testList');
+      node.innerHTML = '';
+      state.tests.forEach(test => {
+        const card = document.createElement('div');
+        card.className = 'testCard';
+        const top = document.createElement('div');
+        top.className = 'listItemTop';
+        const title = document.createElement('b');
+        title.textContent = test.name;
+        const actions = document.createElement('div');
+        actions.className = 'row tight';
+        const edit = document.createElement('button');
+        edit.className = 'mini';
+        edit.textContent = 'Edit';
+        edit.addEventListener('click', () => openTestDialog(test.id));
+        const del = document.createElement('button');
+        del.className = 'mini bad';
+        del.textContent = 'Delete';
+        del.addEventListener('click', () => deleteTest(test.id));
+        actions.appendChild(edit);
+        actions.appendChild(del);
+        top.appendChild(title);
+        top.appendChild(actions);
+        const task = document.createElement('p');
+        task.textContent = test.task;
+        const val = document.createElement('p');
+        val.innerHTML = '<span class="pill">' + test.validatorType + '</span> ' + escapeHtml(test.validator);
+        card.appendChild(top);
+        card.appendChild(task);
+        card.appendChild(val);
+        node.appendChild(card);
+      });
+    }
+
+    function renderStats() {
+      const combos = getCombos();
+      const totals = combos.reduce((acc, combo) => {
+        const m = metricFor(combo.key);
+        acc.runs += m.attempts;
+        acc.success += m.success;
+        acc.ms += m.totalMs;
+        return acc;
+      }, { runs: 0, success: 0, ms: 0 });
+      el('statCombos').textContent = combos.length;
+      el('statRuns').textContent = totals.runs;
+      el('statPass').textContent = totals.runs ? fmtPct(totals.success / totals.runs) : '0%';
+      el('statAvg').textContent = totals.runs ? fmtSec(totals.ms / totals.runs) : '0.00s';
+      el('statTarget').textContent = Math.max(1, Number(state.settings.targetRuns) || 1);
+      el('statQueue').textContent = remainingToTarget();
+    }
+
+    function renderTable() {
+      const target = Math.max(1, Number(state.settings.targetRuns) || 1);
+      const rows = getCombos().map(combo => ({ combo, metric: metricFor(combo.key) }))
+        .sort((a, b) => {
+          const aRuns = a.metric.attempts, bRuns = b.metric.attempts;
+          if (aRuns === 0 && bRuns !== 0) return 1;
+          if (bRuns === 0 && aRuns !== 0) return -1;
+          if (rate(b.metric) !== rate(a.metric)) return rate(b.metric) - rate(a.metric);
+          if (avgMs(a.metric) !== avgMs(b.metric)) return avgMs(a.metric) - avgMs(b.metric);
+          return a.combo.label.localeCompare(b.combo.label);
+        });
+      const body = el('comboTable');
+      body.innerHTML = '';
+      rows.forEach(({ combo, metric }) => {
+        const tr = document.createElement('tr');
+        const gap = Math.max(0, target - metric.attempts);
+        const last = metric.last;
+        tr.innerHTML = `
+          <td><div class="comboName">${escapeHtml(combo.label)}</div><div class="comboSub">Intro: ${escapeHtml(combo.intro.label)} | Outro: ${escapeHtml(combo.outro.label)}</div></td>
+          <td>${metric.attempts}<div class="progress"><div class="bar" style="width:${Math.min(100, metric.attempts / target * 100)}%"></div></div></td>
+          <td>${metric.attempts ? fmtPct(rate(metric)) : 'No data'}</td>
+          <td>${metric.attempts ? fmtSec(avgMs(metric)) : 'No data'}</td>
+          <td>${metric.attempts ? Math.round(avgChars(metric)) : 'No data'}</td>
+          <td>${metric.errors}</td>
+          <td>${gap}</td>
+          <td>${last ? renderLast(last) : 'No runs yet'}</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    function renderLast(last) {
+      const cls = last.error ? 'bad' : (last.passed ? 'good' : 'warn');
+      const label = last.error ? 'error' : (last.passed ? 'pass' : 'fail');
+      const detail = last.error || last.response || '';
+      return `<span class="pill ${cls}">${label}</span><div class="comboSub">${escapeHtml(last.testName)} | ${fmtSec(last.elapsed || 0)}</div><div class="comboSub">${escapeHtml(detail).slice(0, 160)}</div>`;
+    }
+
+    function drawChart() {
+      const canvas = el('metricChart');
+      const rect = canvas.getBoundingClientRect();
+      const scale = window.devicePixelRatio || 1;
+      canvas.width = Math.max(320, rect.width * scale);
+      canvas.height = Math.max(240, rect.height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+      const w = rect.width;
+      const h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#0f1420';
+      ctx.fillRect(0, 0, w, h);
+      const combos = getCombos();
+      const metricName = state.settings.graphMetric || 'passRate';
+      const items = combos.map(combo => {
+        const m = metricFor(combo.key);
+        let value = 0;
+        let label = '';
+        if (metricName === 'passRate') { value = m.attempts ? rate(m) * 100 : 0; label = '%'; }
+        if (metricName === 'avgTime') { value = m.attempts ? avgMs(m) / 1000 : 0; label = 's'; }
+        if (metricName === 'runs') { value = m.attempts; label = 'runs'; }
+        if (metricName === 'errors') { value = m.errors; label = 'errors'; }
+        if (metricName === 'avgChars') { value = m.attempts ? avgChars(m) : 0; label = 'chars'; }
+        return { combo, value, label };
+      }).sort((a, b) => b.value - a.value).slice(0, 24);
+      const padL = 44, padR = 16, padT = 28, padB = 72;
+      const chartW = w - padL - padR;
+      const chartH = h - padT - padB;
+      const maxVal = Math.max(1, ...items.map(i => i.value), metricName === 'passRate' ? 100 : 1);
+      ctx.strokeStyle = '#2b3445';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padL, padT);
+      ctx.lineTo(padL, padT + chartH);
+      ctx.lineTo(padL + chartW, padT + chartH);
+      ctx.stroke();
+      ctx.fillStyle = '#9aa7bd';
+      ctx.font = '12px ' + getComputedStyle(document.body).fontFamily;
+      ctx.fillText(metricTitle(metricName), padL, 18);
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + chartH - (chartH * i / 4);
+        const v = maxVal * i / 4;
+        ctx.strokeStyle = i === 0 ? '#2b3445' : 'rgba(43,52,69,.55)';
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + chartW, y);
+        ctx.stroke();
+        ctx.fillStyle = '#8f9bb0';
+        ctx.fillText(formatMetricValue(v, metricName), 6, y + 4);
+      }
+      const gap = 7;
+      const barW = Math.max(10, (chartW - gap * Math.max(0, items.length - 1)) / Math.max(1, items.length));
+      items.forEach((item, idx) => {
+        const x = padL + idx * (barW + gap);
+        const barH = item.value / maxVal * chartH;
+        const y = padT + chartH - barH;
+        const grad = ctx.createLinearGradient(0, y, 0, padT + chartH);
+        grad.addColorStop(0, '#7cc7ff');
+        grad.addColorStop(1, '#8ee6a8');
+        ctx.fillStyle = grad;
+        ctx.fillRect(x, y, barW, barH);
+        ctx.fillStyle = '#cbd6e8';
+        ctx.font = '10px ' + getComputedStyle(document.body).fontFamily;
+        ctx.save();
+        ctx.translate(x + barW / 2, padT + chartH + 9);
+        ctx.rotate(-Math.PI / 4);
+        ctx.textAlign = 'right';
+        ctx.fillText(shortLabel(item.combo.label, 22), 0, 0);
+        ctx.restore();
+      });
+      if (!items.length) {
+        ctx.fillStyle = '#9aa7bd';
+        ctx.font = '14px ' + getComputedStyle(document.body).fontFamily;
+        ctx.fillText('No combinations available.', padL + 10, padT + 40);
+      }
+    }
+
+    function metricTitle(metric) {
+      return ({ passRate: 'Pass rate by combination', avgTime: 'Average response time by combination', runs: 'Run count by combination', errors: 'Error count by combination', avgChars: 'Average output length by combination' })[metric] || metric;
+    }
+
+    function formatMetricValue(v, metric) {
+      if (metric === 'passRate') return Math.round(v) + '%';
+      if (metric === 'avgTime') return v.toFixed(1) + 's';
+      return Math.round(v).toString();
+    }
+
+    function shortLabel(text, max) {
+      text = String(text || '');
+      return text.length <= max ? text : text.slice(0, max - 1) + '…';
+    }
+
+    function renderLog() {
+      el('runLog').textContent = state.log.slice(-250).join('\n');
+    }
+
+    function logLine(text) {
+      const stamp = new Date().toLocaleTimeString();
+      state.log.push('[' + stamp + '] ' + text);
+      if (state.log.length > 500) state.log = state.log.slice(-500);
+      saveState();
+      renderLog();
+    }
+
+    function setStatus(main, detail) {
+      el('statusMain').textContent = main;
+      el('statusDetail').textContent = detail || '';
+    }
+
+    function addVariant(type) {
+      const isIntro = type === 'intro';
+      const labelEl = el(isIntro ? 'introLabel' : 'outroLabel');
+      const textEl = el(isIntro ? 'introText' : 'outroText');
+      const label = labelEl.value.trim() || (isIntro ? 'Intro variant' : 'Outro variant');
+      const text = textEl.value.trim();
+      if (!text) { alert('Enter text for the new ' + type + '.'); return; }
+      const item = { id: uid(type), label, text, locked: false };
+      if (isIntro) state.intros.push(item); else state.outros.push(item);
+      ensureNewVariantsCatchUp();
+      labelEl.value = '';
+      textEl.value = '';
+      syncInputs();
+      saveState();
+      render();
+      logLine('Added ' + type + ': ' + label + '. New combinations will catch up to the current target.');
+    }
+
+    function editVariant(type, id) {
+      const list = type === 'intro' ? state.intros : state.outros;
+      const item = list.find(x => x.id === id);
+      if (!item) return;
+      const label = prompt('Label:', item.label);
+      if (label == null) return;
+      const text = prompt('Text:', item.text);
+      if (text == null) return;
+      if (item.locked && text.trim() !== '') {
+        alert('The baseline item must stay blank. Add a new variant instead.');
+        return;
+      }
+      item.label = label.trim() || item.label;
+      item.text = text.trim();
+      saveState();
+      render();
+      logLine('Edited ' + type + ': ' + item.label + '.');
+    }
+
+    function deleteVariant(type, id) {
+      const list = type === 'intro' ? state.intros : state.outros;
+      const item = list.find(x => x.id === id);
+      if (!item || item.locked) return;
+      if (!confirm('Delete "' + item.label + '"? Existing metrics remain in storage but hidden from active combinations.')) return;
+      if (type === 'intro') state.intros = state.intros.filter(x => x.id !== id);
+      else state.outros = state.outros.filter(x => x.id !== id);
+      saveState();
+      render();
+      logLine('Deleted ' + type + ': ' + item.label + '.');
+    }
+
+    let editingTestId = null;
+
+    function openTestDialog(testId) {
+      editingTestId = testId || null;
+      const test = state.tests.find(t => t.id === testId);
+      el('testName').value = test ? test.name : '';
+      el('testTask').value = test ? test.task : '';
+      el('validatorType').value = test ? test.validatorType : 'regex';
+      el('validatorValue').value = test ? test.validator : '';
+      el('testDialog').showModal();
+    }
+
+    function saveTest() {
+      const name = el('testName').value.trim();
+      const task = el('testTask').value.trim();
+      const validatorType = el('validatorType').value;
+      const validator = el('validatorValue').value.trim();
+      if (!name || !task || !validator) { alert('Name, task, and validator are required.'); return; }
+      if (editingTestId) {
+        const test = state.tests.find(t => t.id === editingTestId);
+        if (test) Object.assign(test, { name, task, validatorType, validator });
+      } else {
+        state.tests.push({ id: uid('test'), name, task, validatorType, validator });
+      }
+      editingTestId = null;
+      saveState();
+      render();
+      el('testDialog').close();
+      logLine('Saved test: ' + name + '.');
+    }
+
+    function deleteTest(id) {
+      const test = state.tests.find(t => t.id === id);
+      if (!test) return;
+      if (state.tests.length <= 1) { alert('Keep at least one test case.'); return; }
+      if (!confirm('Delete test "' + test.name + '"?')) return;
+      state.tests = state.tests.filter(t => t.id !== id);
+      saveState();
+      render();
+      logLine('Deleted test: ' + test.name + '.');
+    }
+
+    function previewNextPrompt() {
+      pullInputs();
+      const job = chooseNextJob() || { combo: getCombos()[0], test: enabledTests()[0] };
+      if (!job.combo || !job.test) return;
+      const node = el('promptPreview');
+      node.classList.remove('hidden');
+      node.textContent = buildPrompt(job.combo, job.test);
+    }
+
+    function clearLog() {
+      state.log = [];
+      saveState();
+      renderLog();
+    }
+
+    function resetResults() {
+      if (!confirm('Reset all metrics and history? Variants and tests will stay.')) return;
+      state.metrics = {};
+      state.history = [];
+      saveState();
+      render();
+      logLine('Results reset.');
+    }
+
+    function exportCSV() {
+      const rows = [['combo_key','intro','outro','runs','success','failure','errors','pass_rate','avg_ms','avg_chars','last_test','last_passed','last_error']];
+      for (const combo of getCombos()) {
+        const m = metricFor(combo.key);
+        rows.push([
+          combo.key, combo.intro.label, combo.outro.label, m.attempts, m.success, m.failure, m.errors,
+          m.attempts ? (m.success / m.attempts).toFixed(4) : '',
+          m.attempts ? Math.round(avgMs(m)) : '',
+          m.attempts ? Math.round(avgChars(m)) : '',
+          m.last ? m.last.testName : '',
+          m.last ? String(m.last.passed) : '',
+          m.last ? (m.last.error || '') : ''
+        ]);
+      }
+      downloadText('llm_intro_outro_split_metrics.csv', rows.map(r => r.map(csvCell).join(',')).join('\n'), 'text/csv');
+    }
+
+    function exportJSON() {
+      downloadText('llm_intro_outro_split_test_state.json', JSON.stringify(state, null, 2), 'application/json');
+    }
+
+    function importJSON(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const incoming = JSON.parse(reader.result);
+          state = mergeState(clone(defaultState), incoming);
+          syncInputs();
+          saveState();
+          render();
+          logLine('Imported JSON state.');
+        } catch (err) {
+          alert('Import failed: ' + String(err.message || err));
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function csvCell(value) {
+      const text = String(value ?? '');
+      return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    function downloadText(filename, text, type) {
+      const blob = new Blob([text], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    }
+
+    function bindEvents() {
+      el('savePromptBtn').addEventListener('click', () => { pullInputs(); logLine('Saved base prompt.'); });
+      el('previewPromptBtn').addEventListener('click', previewNextPrompt);
+      el('addIntroBtn').addEventListener('click', () => addVariant('intro'));
+      el('addOutroBtn').addEventListener('click', () => addVariant('outro'));
+      el('runOneBtn').addEventListener('click', () => { pullInputs(); runOne(); });
+      el('runTargetBtn').addEventListener('click', () => { pullInputs(); runUntilTarget(); });
+      el('stopBtn').addEventListener('click', stopRuns);
+      el('reloadProviderBtn').addEventListener('click', reloadProvider);
+      el('catchUpBtn').addEventListener('click', setTargetToCurrentMax);
+      el('exportCsvBtn').addEventListener('click', exportCSV);
+      el('exportJsonBtn').addEventListener('click', exportJSON);
+      el('importJsonBtn').addEventListener('click', () => el('importFile').click());
+      el('importFile').addEventListener('change', e => { if (e.target.files[0]) importJSON(e.target.files[0]); e.target.value = ''; });
+      el('resetBtn').addEventListener('click', resetResults);
+      el('clearLogBtn').addEventListener('click', clearLog);
+      el('openTestDialogBtn').addEventListener('click', () => openTestDialog());
+      el('closeTestDialogBtn').addEventListener('click', () => el('testDialog').close());
+      el('saveTestBtn').addEventListener('click', saveTest);
+      ['targetRuns','delaySeconds','modelId','temperature','maxTokens','providerMode'].forEach(id => el(id).addEventListener('change', pullInputs));
+      document.querySelectorAll('.tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.settings.graphMetric = btn.dataset.metric;
+          saveState();
+          drawChart();
+        });
+      });
+      window.addEventListener('resize', () => drawChart());
+    }
+
+    function init() {
+      bindEvents();
+      syncInputs();
+      document.querySelectorAll('.tab').forEach(btn => btn.classList.toggle('active', btn.dataset.metric === state.settings.graphMetric));
+      render();
+      setStatus('Ready.', 'Balanced mode runs the lowest-count combination first. New variants automatically catch up to the current target.');
+      if (state.settings.providerMode !== 'local-sim') {
+        ensurePuterLoaded(false).catch(() => renderProviderStatus());
+      }
+      setTimeout(renderProviderStatus, 1200);
+      setInterval(renderProviderStatus, 4000);
+    }
+
+    init();
+  </script>
+</body>
+</html>
